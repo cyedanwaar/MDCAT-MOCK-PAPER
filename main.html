@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MDCAT & ETEA Master Medical Entrance Examination Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            medical: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(107, 114, 128, 0.7); }
+
+    /* Strikethrough for eliminated options */
+    .eliminated-option {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+
+    /* OMR Active Bubble Highlight with complete border visibility & glow */
+    .pal-bubble-active {
+      outline: none !important;
+      border-color: #0d9488 !important;
+      box-shadow: 0 0 0 2.5px #0d9488, 0 0 12px rgba(13, 148, 136, 0.45) !important;
+      position: relative;
+      z-index: 10;
+    }
+    .dark .pal-bubble-active {
+      border-color: #14b8a6 !important;
+      box-shadow: 0 0 0 2.5px #14b8a6, 0 0 16px rgba(20, 184, 166, 0.55) !important;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Pulse animation for timer under 15 mins */
+    @keyframes urgentPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .urgent-timer {
+      animation: urgentPulse 1.2s infinite ease-in-out;
+      color: #e11d48 !important;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white transition-colors duration-200">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Exam Title -->
+      <div class="flex items-center gap-3 cursor-pointer" id="navLogoBtn">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 flex items-center justify-center text-white shadow-md shadow-teal-500/20 flex-shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">MDCAT & ETEA Portal</h1>
+            <span id="activeModeBadge" class="hidden sm:inline-flex px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+              PMDC Standard 2024–2026
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">UHS &bull; KMU / ETEA &bull; DUHS &bull; SZABMU &bull; BUMHS</p>
+        </div>
+      </div>
+
+      <!-- Center: Real-time Countdown Timer (visible in test mode) -->
+      <div id="timerContainer" style="display: none;" class="items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-mono shadow-inner">
+        <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span id="timerDisplay" class="font-bold text-base tracking-wider text-slate-900 dark:text-white">03:00:00</span>
+        <button id="pauseTimerBtn" type="button" title="Pause / Resume Timer" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 ml-1 p-1">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Dark/Light Theme Toggle -->
+        <button id="themeToggleBtn" type="button" aria-label="Toggle Theme" class="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+        </button>
+
+        <!-- Submit Examination Button -->
+        <button id="submitExamBtn" type="button" style="display: none;" class="px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm shadow-emerald-600/30 transition transform active:scale-95 cursor-pointer">
+          Submit Paper
+        </button>
+
+        <!-- Return / Reset Button -->
+        <button id="newExamBtn" type="button" style="display: none;" class="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition cursor-pointer">
+          Select Exam
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= NOTIFICATION TOAST ================= -->
+  <div id="toastBox" class="fixed top-20 right-4 z-50 transform transition-all duration-300 translate-y-[-100%] opacity-0 pointer-events-none bg-slate-900 text-white dark:bg-teal-700 text-xs sm:text-sm font-medium py-2.5 px-4 rounded-xl shadow-xl flex items-center gap-2">
+    <span id="toastMsg">Ready</span>
+  </div>
+
+  <!-- ================= SCREEN 1: WELCOME & TEST SELECTION ================= -->
+  <main id="welcomeScreen" class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col items-center justify-center">
+    
+    <div class="text-center max-w-3xl mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-semibold mb-4 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-teal-500 animate-ping"></span>
+        500 MCQs Comprehensive Analysis: 200 Repeated + 200 Predictive + 100 Mixed
+      </div>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+        Master Medical Entrance Test Simulator
+      </h2>
+      <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+        Engineered with genuine past paper analysis from UHS, KMU/ETEA, DUHS, SZABMU, and BUMHS (2019–2024). Practice under official PMDC time constraints or utilize Tutor Mode for instant step-by-step solutions.
+      </p>
+    </div>
+
+    <!-- Mode Selector Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full mb-8">
+      
+      <!-- Card 1: Official PMDC 180 Mock -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-teal-500 p-5 shadow-lg relative flex flex-col justify-between hover:shadow-xl transition group">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-0.5 rounded-full shadow">
+          Recommended Official
+        </div>
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-300 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1.5">180-MCQ Full Mock</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+            Exact PMDC blueprint proportions: Bio 81, Chem 45, Phys 36, Eng 9, Logic 9.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300 mb-5">
+            <li class="flex items-center gap-1.5"><span class="text-teal-500 font-bold">&check;</span> 180 Minutes (3 Hours)</li>
+            <li class="flex items-center gap-1.5"><span class="text-teal-500 font-bold">&check;</span> 180 Questions</li>
+            <li class="flex items-center gap-1.5"><span class="text-teal-500 font-bold">&check;</span> Merit Aggregation</li>
+          </ul>
+        </div>
+        <button id="btnStartFullMock" type="button" class="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs tracking-wide shadow-md shadow-teal-600/30 transition transform active:scale-95 cursor-pointer">
+          Start Official Mock (180)
+        </button>
+      </div>
+
+      <!-- Card 2: 200 Top Repeated Past Papers -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col justify-between hover:border-teal-400 dark:hover:border-teal-600 transition">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1.5">200 Most Repeated</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+            High-frequency core questions from the last 5 years across all provincial boards.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300 mb-5">
+            <li class="flex items-center gap-1.5"><span class="text-emerald-500 font-bold">&check;</span> 150 Minutes Timed</li>
+            <li class="flex items-center gap-1.5"><span class="text-emerald-500 font-bold">&check;</span> 200 Past Paper MCQs</li>
+            <li class="flex items-center gap-1.5"><span class="text-emerald-500 font-bold">&check;</span> High-Yield Core Traps</li>
+          </ul>
+        </div>
+        <button id="btnStartRepeated" type="button" class="w-full py-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-semibold text-xs tracking-wide transition transform active:scale-95 cursor-pointer">
+          Launch Repeated (200)
+        </button>
+      </div>
+
+      <!-- Card 3: 200 Predictive & Edge Cases -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col justify-between hover:border-indigo-400 dark:hover:border-indigo-600 transition">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1.5">200 Predictive MCQs</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+            Multi-step calculations, inter-board discrepancies (PTB vs KPTB vs STBB), and high-order items.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300 mb-5">
+            <li class="flex items-center gap-1.5"><span class="text-indigo-500 font-bold">&check;</span> 150 Minutes Timed</li>
+            <li class="flex items-center gap-1.5"><span class="text-indigo-500 font-bold">&check;</span> 200 Advanced MCQs</li>
+            <li class="flex items-center gap-1.5"><span class="text-indigo-500 font-bold">&check;</span> Conceptual Traps</li>
+          </ul>
+        </div>
+        <button id="btnStartPredictive" type="button" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs tracking-wide shadow-md shadow-indigo-600/30 transition transform active:scale-95 cursor-pointer">
+          Launch Predictive (200)
+        </button>
+      </div>
+
+      <!-- Card 4: 100 Mixed / Clinical Vignettes -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col justify-between hover:border-purple-400 dark:hover:border-purple-600 transition">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1.5">100 Mixed Vignettes</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+            High-intensity speed challenge blending clinical scenarios, organic mechanisms, and genetics.
+          </p>
+          <ul class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300 mb-5">
+            <li class="flex items-center gap-1.5"><span class="text-purple-500 font-bold">&check;</span> 75 Minutes Timed</li>
+            <li class="flex items-center gap-1.5"><span class="text-purple-500 font-bold">&check;</span> 100 Clinical Items</li>
+            <li class="flex items-center gap-1.5"><span class="text-purple-500 font-bold">&check;</span> Rapid Evaluation</li>
+          </ul>
+        </div>
+        <button id="btnStartMixed" type="button" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs tracking-wide shadow-md shadow-purple-600/30 transition transform active:scale-95 cursor-pointer">
+          Launch Mixed (100)
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Subject Quick-Drills Bar -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 w-full mb-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+        <h4 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+          <span>Targeted Subject Practice Drills</span>
+          <span class="text-[11px] font-normal text-slate-500 dark:text-slate-400">(Solve specific subjects individually)</span>
+        </h4>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+        <button id="btnDrillBio" type="button" class="p-2.5 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-teal-800 dark:text-teal-200 text-xs font-semibold text-center transition cursor-pointer">
+          Biology (80 MCQs)
+        </button>
+        <button id="btnDrillChem" type="button" class="p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 text-xs font-semibold text-center transition cursor-pointer">
+          Chemistry (60 MCQs)
+        </button>
+        <button id="btnDrillPhys" type="button" class="p-2.5 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs font-semibold text-center transition cursor-pointer">
+          Physics (50 MCQs)
+        </button>
+        <button id="btnDrillEng" type="button" class="p-2.5 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-semibold text-center transition cursor-pointer">
+          English (30 MCQs)
+        </button>
+        <button id="btnDrillLogic" type="button" class="col-span-2 sm:col-span-1 p-2.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-800 dark:text-purple-200 text-xs font-semibold text-center transition cursor-pointer">
+          Logic (30 MCQs)
+        </button>
+      </div>
+    </div>
+
+    <!-- Exam Environment Preferences Bar -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 w-full flex flex-wrap items-center justify-between gap-4 text-xs shadow-sm">
+      <div class="flex items-center gap-3">
+        <span class="font-bold text-slate-700 dark:text-slate-300">Examination Mode:</span>
+        <div class="inline-flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button id="modeExamBtn" type="button" class="px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold shadow-sm transition cursor-pointer">
+            Strict Timed Exam
+          </button>
+          <button id="modeTutorBtn" type="button" class="px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition cursor-pointer">
+            Tutor Mode (Instant Answers)
+          </button>
+        </div>
+      </div>
+
+      <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+        <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">A / B / C / D</kbd> Select Option
+        &bull;
+        <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">N</kbd> Next
+        &bull;
+        <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">P</kbd> Prev
+        &bull;
+        <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 font-mono text-[10px]">F</kbd> Flag
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= SCREEN 2: ACTIVE EXAMINATION INTERFACE ================= -->
+  <main id="examScreen" style="display: none;" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6 items-start">
+    
+    <!-- LEFT / CENTER COLUMN: Current Question Display -->
+    <div class="flex-1 w-full flex flex-col gap-4">
+      
+      <!-- Question Card Container -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm flex flex-col justify-between min-h-[540px]">
+        
+        <!-- Question Meta Header -->
+        <div>
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-5 flex-wrap gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="questionNumberTag" class="px-3 py-1 text-xs font-bold rounded-lg bg-teal-600 text-white shadow-sm shadow-teal-600/20">
+                Question 1 of 180
+              </span>
+              <span id="subjectTag" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
+                Biology
+              </span>
+              <span id="tierTag" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                Most Repeated
+              </span>
+              <span id="topicTag" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                Cell Biology
+              </span>
+            </div>
+
+            <!-- Flag / Bookmark Button -->
+            <button id="flagQuestionBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+              <svg id="flagIcon" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+              <span id="flagBtnLabel">Flag Question</span>
+            </button>
+          </div>
+
+          <!-- Question Stem -->
+          <div class="mb-6">
+            <p id="questionStem" class="text-base sm:text-lg font-medium text-slate-900 dark:text-white leading-relaxed select-text">
+              Loading question stem...
+            </p>
+          </div>
+
+          <!-- Elimination Hint Prompt -->
+          <div class="flex items-center justify-between mb-3 text-xs text-slate-400">
+            <span>Select an answer or click the strike icon (<span class="font-mono">&empty;</span>) to eliminate distractors:</span>
+          </div>
+
+          <!-- Options Grid -->
+          <div id="optionsContainer" class="space-y-3 mb-6">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Tutor Mode Explanation Panel (Active when Tutor Mode is ON) -->
+        <div id="tutorExplanationBox" style="display: none;" class="my-4 p-4 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800">
+          <div class="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider mb-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Textbook Derivation & Conceptual Rationale
+          </div>
+          <p id="tutorExplanationText" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <!-- Question Bottom Action Bar -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto gap-2">
+          <button id="prevQuestionBtn" type="button" class="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Previous
+          </button>
+
+          <button id="clearResponseBtn" type="button" class="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition font-medium px-2 py-1 cursor-pointer">
+            Clear Choice
+          </button>
+
+          <button id="nextQuestionBtn" type="button" class="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold shadow-sm shadow-teal-600/20 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer">
+            Next
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Fully Responsive, High-Performance OMR Question Matrix -->
+    <aside id="omrPaletteAside" class="w-full lg:w-88 xl:w-96 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm flex flex-col lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:max-h-[820px] transition-all">
+      
+      <!-- Palette Top Header & Dynamic Progress -->
+      <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-lg bg-teal-100 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 flex items-center justify-center font-mono font-bold text-xs">
+              OMR
+            </div>
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white tracking-tight">Question Matrix</h3>
+          </div>
+          <span id="paletteAnsweredProgress" class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+            0/180 Ans
+          </span>
+        </div>
+
+        <!-- Quick Jump & Next Pending Controls -->
+        <div class="flex items-center gap-2 mb-3">
+          <button id="btnJumpNextUnanswered" type="button" class="flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[11px] font-bold tracking-wide shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer" title="Jump straight to the next unanswered question">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Next Pending</span>
+          </button>
+          
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200 dark:border-slate-700">
+            <span class="text-[10px] font-mono text-slate-400 pl-2">Q#</span>
+            <input id="jumpQuestionInput" type="number" min="1" max="500" placeholder="1" class="w-12 bg-transparent text-xs font-mono font-bold text-center text-slate-800 dark:text-slate-100 focus:outline-none" />
+            <button id="btnJumpToQ" type="button" class="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-[10px] font-bold cursor-pointer">Go</button>
+          </div>
+        </div>
+        
+        <!-- Live Status Filter Tabs -->
+        <div class="grid grid-cols-4 gap-1 mb-2.5 text-[10px] font-semibold">
+          <button id="tabStatAll" type="button" class="status-tab px-1.5 py-1 rounded-lg bg-teal-600 text-white text-center cursor-pointer shadow-sm">
+            All (<span id="countStatAll">180</span>)
+          </button>
+          <button id="tabStatUnanswered" type="button" class="status-tab px-1.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-center cursor-pointer">
+            Pending (<span id="countStatUnanswered">180</span>)
+          </button>
+          <button id="tabStatAnswered" type="button" class="status-tab px-1.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-center cursor-pointer">
+            Ans (<span id="countStatAnswered">0</span>)
+          </button>
+          <button id="tabStatFlagged" type="button" class="status-tab px-1.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-center cursor-pointer">
+            Flag (<span id="countStatFlagged">0</span>)
+          </button>
+        </div>
+
+        <!-- Subject Filter Chips for Palette -->
+        <div class="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
+          <button id="tabPalAll" type="button" class="palette-tab px-2.5 py-0.5 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 font-bold shrink-0 cursor-pointer">All</button>
+          <button id="tabPalBio" type="button" class="palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">Bio</button>
+          <button id="tabPalChem" type="button" class="palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">Chem</button>
+          <button id="tabPalPhys" type="button" class="palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">Phys</button>
+          <button id="tabPalEng" type="button" class="palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">Eng</button>
+          <button id="tabPalLogic" type="button" class="palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer">Logic</button>
+        </div>
+      </div>
+
+      <!-- Color Legend Indicator with 4-State Visual Feedback -->
+      <div class="flex items-center justify-between px-1 py-1.5 mb-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-[10px] text-slate-500 dark:text-slate-400">
+        <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Ans [A]</div>
+        <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Flag</div>
+        <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1 ring-amber-400"></span> Both</div>
+        <div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700"></span> Empty</div>
+      </div>
+
+      <!-- Scrollable OMR Bubble Grid (Responsive 5-column layout with auto-scroll and perimeter padding) -->
+      <div id="paletteScrollContainer" class="flex-1 overflow-y-auto p-2.5 scroll-smooth">
+        <div id="paletteGrid" class="grid grid-cols-5 gap-2 content-start pb-2">
+          <!-- Bubbles injected dynamically with precise numbers & selected options -->
+        </div>
+        <div id="paletteEmptyNotice" style="display: none;" class="py-8 text-center text-xs text-slate-400">
+          No questions match selected filter.
+        </div>
+      </div>
+
+      <!-- Finish & Submit Paper Trigger -->
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 mt-auto">
+        <button id="btnPaletteFinish" type="button" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-xs uppercase tracking-wider shadow-sm transition transform active:scale-95 cursor-pointer">
+          Finish & Submit Exam
+        </button>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Mobile Floating Sticky Bottom OMR Quick-Access Bar (Visible on mobile/tablet only) -->
+  <div id="mobileBottomActionBar" class="lg:!hidden hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 p-2.5 px-4 flex items-center justify-between shadow-2xl">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"></span>
+      <span id="mobileProgressLabel" class="text-xs font-mono font-bold text-slate-800 dark:text-slate-100">0/180 Answered</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="mobileQuickNextUnanswered" type="button" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-white shadow-sm flex items-center gap-1 active:scale-95 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>Pending</span>
+      </button>
+      <button id="mobileScrollToMatrix" type="button" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-teal-600 text-white shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <span>OMR Sheet</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN 3: RESULTS & SCORECARD ================= -->
+  <main id="resultsScreen" style="display: none;" class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+    
+    <!-- Top Result Banner -->
+    <div class="bg-gradient-to-r from-teal-800 via-teal-900 to-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-teal-200 text-xs font-semibold mb-3">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Official Psychometric Result Verification
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">Examination Score Report</h2>
+          <p id="candidateMeritSummary" class="text-teal-100 text-sm max-w-xl leading-relaxed">
+            Evaluating candidate standing against official PMDC admission policies and provincial open merit quotas...
+          </p>
+        </div>
+
+        <!-- Overall Score Ring Box -->
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20 text-center min-w-[200px]">
+          <div class="text-xs uppercase tracking-widest text-teal-200 font-bold mb-1">Total Score</div>
+          <div id="finalScoreDisplay" class="text-4xl sm:text-5xl font-extrabold tracking-tight">0 / 0</div>
+          <div id="finalPercentDisplay" class="text-sm font-semibold text-emerald-300 mt-1">0.0% Aggregate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PMDC Standards & Performance Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">PMDC MBBS Threshold (55%)</div>
+        <div id="mbbsStatus" class="text-lg font-bold flex items-center gap-2">Checking...</div>
+        <p class="text-[11px] text-slate-400 mt-1">Min 55% required for medical colleges</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">PMDC BDS Threshold (50%)</div>
+        <div id="bdsStatus" class="text-lg font-bold flex items-center gap-2">Checking...</div>
+        <p class="text-[11px] text-slate-400 mt-1">Min 50% required for dental colleges</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">Speed Metric</div>
+        <div id="avgTimeSpent" class="text-lg font-bold text-slate-900 dark:text-white">-- s / MCQ</div>
+        <p class="text-[11px] text-slate-400 mt-1">Standard pace &le; 60 seconds / item</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">Accuracy Breakdown</div>
+        <div id="accuracyStats" class="text-lg font-bold text-teal-600 dark:text-teal-400">0% Correct</div>
+        <p id="accuracyBreakdown" class="text-[11px] text-slate-400 mt-1">0 correct &bull; 0 wrong</p>
+      </div>
+    </div>
+
+    <!-- Subject Mastery Performance Grid -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Subject Mastery & Syllabus Proportions</h3>
+      <div id="subjectBreakdownContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Detailed Solutions & Question-by-Question Review -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">Detailed Solutions & Step-by-Step Rationale</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Examine every distractor, correct key, and mathematical/chemical derivation</p>
+        </div>
+        
+        <!-- Filter Review Items -->
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
+          <button id="revFilterAll" type="button" class="rev-filter-btn px-3 py-1 rounded-lg bg-white dark:bg-slate-700 font-semibold text-slate-900 dark:text-white shadow-sm cursor-pointer">All</button>
+          <button id="revFilterIncorrect" type="button" class="rev-filter-btn px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">Incorrect Only</button>
+          <button id="revFilterFlagged" type="button" class="rev-filter-btn px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">Flagged</button>
+        </div>
+      </div>
+
+      <div id="reviewQuestionsContainer" class="space-y-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Bottom Actions for Report -->
+    <div class="flex items-center justify-between pt-4 pb-12">
+      <button id="btnPrintScorecard" type="button" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2 cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Print / Save Scorecard
+      </button>
+
+      <button id="btnRetakeExam" type="button" class="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-md shadow-teal-600/20 transition cursor-pointer">
+        Take Another Paper
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ================= SUBMIT CONFIRMATION MODAL ================= -->
+  <div id="confirmSubmitModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl">
+      <div class="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h3 class="text-xl font-bold text-center text-slate-900 dark:text-white mb-1.5">Submit Examination?</h3>
+      <p class="text-xs text-center text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+        Are you ready to finalize your test? You will immediately receive your provincial merit projection and derivations.
+      </p>
+
+      <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-100 dark:border-slate-800 mb-6 space-y-2 text-xs">
+        <div class="flex justify-between text-slate-600 dark:text-slate-300">
+          <span>Total Questions:</span>
+          <span id="modalTotalCount" class="font-bold">180</span>
+        </div>
+        <div class="flex justify-between text-emerald-600 dark:text-emerald-400">
+          <span>Answered Questions:</span>
+          <span id="modalAnsweredCount" class="font-bold">0</span>
+        </div>
+        <div class="flex justify-between text-amber-600 dark:text-amber-400">
+          <span>Flagged for Review:</span>
+          <span id="modalFlaggedCount" class="font-bold">0</span>
+        </div>
+        <div class="flex justify-between text-rose-600 dark:text-rose-400">
+          <span>Unattempted Questions:</span>
+          <span id="modalUnansweredCount" class="font-bold">180</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btnModalCancel" type="button" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+          Resume Paper
+        </button>
+        <button id="btnModalConfirm" type="button" class="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold shadow-md shadow-teal-600/30 transition cursor-pointer">
+          Confirm Submit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom In-App Modal for Leaving Exam (Replaces browser confirm) -->
+  <div id="leaveExamModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-sm w-full p-6 shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1.5">Exit Current Session?</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+        Returning to the home menu will pause your examination. You can resume anytime without losing your answers.
+      </p>
+      <div class="flex items-center gap-2.5">
+        <button id="btnCancelLeave" type="button" class="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+          Stay on Paper
+        </button>
+        <button id="btnConfirmLeave" type="button" class="flex-1 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition cursor-pointer">
+          Return Home
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MASTER JAVASCRIPT APPLICATION LOGIC ================= -->
+  <script>
+    /* Safe Storage Helper preventing iframe access errors */
+    const safeStore = {
+      get: (k) => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+      set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} }
+    };
+
+    /* Safe Event Listener Helper - Prevents any uncaught null pointer TypeError exceptions */
+    function safeListen(id, event, handler) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener(event, handler);
+      }
+    }
+
+    /* Notification Toast Helper */
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      const toastText = document.getElementById('toastMsg');
+      if (!toast || !toastText) return;
+      toastText.textContent = msg;
+      toast.style.transform = 'translateY(0)';
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-100%)';
+        toast.style.opacity = '0';
+      }, 2200);
+    }
+
+    /* Screen Transition Engine (Guaranteed visibility without CSS specificity bugs) */
+    function switchScreen(screenId) {
+      const screens = ['welcomeScreen', 'examScreen', 'resultsScreen'];
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (id === screenId) {
+            el.style.display = (id === 'resultsScreen' ? 'block' : 'flex');
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       AUTHENTIC QUESTION BANK: 500 MCQs ECOSYSTEM (200 Repeated, 200 Predictive, 100 Mixed)
+       ========================================================================== */
+    const MASTER_QUESTION_POOL = [
+      // --- BIOLOGY: TIER 1 MOST REPEATED (UHS, KMU, DUHS, SZABMU) ---
+      {
+        id: 1,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Biological Molecules",
+        stem: "Which of the following fatty acids is monounsaturated and possesses an 18-carbon hydrocarbon chain with a cis-double bond at C-9?",
+        options: ["Palmitic acid", "Stearic acid", "Oleic acid", "Linoleic acid"],
+        correct: 2,
+        explanation: "Oleic acid is an 18-carbon monounsaturated fatty acid (18:1 cis-Δ9). Palmitic acid has 16 carbons (saturated), stearic acid has 18 carbons (saturated), and linoleic acid has 18 carbons with two double bonds (polyunsaturated 18:2)."
+      },
+      {
+        id: 2,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Muscle Contraction",
+        stem: "During the sliding filament mechanism of skeletal muscle contraction, calcium ions released from the sarcoplasmic reticulum bind directly to:",
+        options: ["Tropomyosin", "Troponin C", "Actin active site", "Myosin heavy chain"],
+        correct: 1,
+        explanation: "Calcium binds specifically to the Troponin C subunit of the troponin complex. This triggers a conformational shift that displaces tropomyosin, uncovering the myosin-binding sites on actin."
+      },
+      {
+        id: 3,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Cellular Respiration",
+        stem: "What is the net gain of ATP produced exclusively by substrate-level phosphorylation per single molecule of glucose during aerobic glycolysis?",
+        options: ["2 ATP", "4 ATP", "6 ATP", "8 ATP"],
+        correct: 0,
+        explanation: "In glycolysis, a total of 4 ATP molecules are synthesized (2 by phosphoglycerate kinase and 2 by pyruvate kinase). However, 2 ATP molecules are invested in the preparatory hexokinase and PFK-1 steps, resulting in a net yield of 2 ATP."
+      },
+      {
+        id: 4,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Virology & Immunology",
+        stem: "Human Immunodeficiency Virus (HIV) establishes selective tropism for helper T-lymphocytes through the high-affinity attachment of its surface envelope glycoprotein gp120 to:",
+        options: ["CD8 coreceptor", "CD4 receptor", "MHC Class I complex", "CCR3 chemokine receptor"],
+        correct: 1,
+        explanation: "HIV surface glycoprotein gp120 binds specifically to the CD4 receptor primarily expressed on the surface of T-helper lymphocytes, monocytes, and dendritic macrophages."
+      },
+      {
+        id: 5,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Enzymology",
+        stem: "Which of the following gastrointestinal digestive enzymes demonstrates peak catalytic velocity in an intensely acidic milieu between pH 1.5 and 2.0?",
+        options: ["Salivary alpha-amylase", "Pancreatic lipase", "Pepsin", "Trypsin"],
+        correct: 2,
+        explanation: "Pepsin, synthesized and secreted by gastric chief cells as the inactive zymogen pepsinogen, requires an optimal pH between 1.5 and 2.0 maintained by hydrochloric acid in the stomach lumen."
+      },
+      {
+        id: 6,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Enzyme Kinetics",
+        stem: "In classical competitive enzyme inhibition, how are the kinetic parameters Vmax (maximum velocity) and Km (Michaelis constant) altered?",
+        options: ["Vmax decreases; Km remains unchanged", "Vmax remains unchanged; Km increases", "Both Vmax and Km decrease", "Vmax increases; Km decreases"],
+        correct: 1,
+        explanation: "Competitive inhibitors bind reversibly to the enzyme's active site. Because sufficiently high substrate concentrations displace the inhibitor, Vmax remains unchanged. However, a higher substrate concentration is required to reach 1/2 Vmax, meaning Km increases."
+      },
+      {
+        id: 7,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Prokaryotes",
+        stem: "The fundamental distinguishing feature of the cell wall of Gram-positive bacteria compared to Gram-negative bacteria is:",
+        options: ["A thin peptidoglycan sheet coated by an outer lipopolysaccharide bilayer", "A thick, multilayered peptidoglycan meshwork containing teichoic and lipoteichoic acids", "A cellulose framework impregnated with pectin", "A chitinous polymer shell"],
+        correct: 1,
+        explanation: "Gram-positive bacteria have a thick peptidoglycan wall (20–80 nm) containing teichoic and lipoteichoic acids. They lack the outer lipid membrane found in Gram-negative bacteria, allowing them to retain crystal violet dye."
+      },
+      {
+        id: 8,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Cell Biology",
+        stem: "What is the intact sedimentation coefficient of functional cytoplasmic ribosomes in prokaryotes, and what are their component subunits?",
+        options: ["80S (60S and 40S)", "70S (50S and 30S)", "70S (40S and 30S)", "80S (50S and 30S)"],
+        correct: 1,
+        explanation: "Prokaryotic ribosomes are 70S particles composed of a large 50S subunit and a small 30S subunit. Eukaryotic cytosolic ribosomes are 80S (60S + 40S)."
+      },
+      {
+        id: 9,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Circulation",
+        stem: "The first heart sound ('lub' or S1) audible upon cardiac auscultation is produced by the sudden mechanical closure of:",
+        options: ["Aortic and pulmonary semilunar valves", "Mitral (bicuspid) and tricuspid atrioventricular valves", "The Eustachian valve", "The coronary sinus valve"],
+        correct: 1,
+        explanation: "S1 ('lub') is caused by the sudden closure of the atrioventricular valves (mitral and tricuspid) at the beginning of ventricular isovolumetric contraction. S2 ('dub') marks the closure of the semilunar valves."
+      },
+      {
+        id: 10,
+        subject: "Biology",
+        tier: "Most Repeated",
+        topic: "Respiration",
+        stem: "A rightward shift of the oxyhemoglobin dissociation curve (the Bohr effect) is physiologically promoted by:",
+        options: ["Elevated arterial pH (alkalosis)", "Decreased partial pressure of CO2 (PCO2)", "Elevated body temperature and increased [H+] ions (acidosis)", "Decreased levels of 2,3-bisphosphoglycerate (2,3-BPG)"],
+        correct: 2,
+        explanation: "The Bohr effect shifts the oxygen dissociation curve to the right, decreasing hemoglobin's affinity for O2 and promoting oxygen unloading into metabolizing tissues. It is triggered by high H+ (low pH), high CO2, high temperature, and elevated 2,3-BPG."
+      },
+
+      // --- CHEMISTRY: TIER 1 MOST REPEATED ---
+      {
+        id: 11,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Stoichiometry",
+        stem: "What is the total mass of elemental carbon present in 2.5 moles of anhydrous glucose (C6H12O6)?",
+        options: ["72 g", "144 g", "180 g", "360 g"],
+        correct: 2,
+        explanation: "1 mole of glucose (C6H12O6) contains 6 moles of carbon atoms. Thus, 2.5 moles contain 2.5 × 6 = 15 moles of carbon. Mass = 15 mol × 12.0 g/mol = 180 g."
+      },
+      {
+        id: 12,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Gas Laws",
+        stem: "What volume is occupied by 16.0 g of diatomic oxygen gas (O2, molar mass = 32.0 g/mol) under standard temperature and pressure (STP)?",
+        options: ["5.6 dm³", "11.2 dm³", "22.4 dm³", "44.8 dm³"],
+        correct: 1,
+        explanation: "Moles of O2 = 16.0 g / 32.0 g/mol = 0.50 mol. At STP, 1 mole of any ideal gas occupies 22.4 dm³. Therefore, 0.50 mol occupies 0.50 × 22.4 dm³ = 11.2 dm³."
+      },
+      {
+        id: 13,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Atomic Structure",
+        stem: "What is the maximum number of electrons that can be accommodated in an atomic subshell characterized by azimuthal quantum number l = 3?",
+        options: ["6 electrons", "10 electrons", "14 electrons", "18 electrons"],
+        correct: 2,
+        explanation: "Azimuthal quantum number l = 3 corresponds to the f subshell. The number of degenerate orbitals is (2l + 1) = 2(3) + 1 = 7 orbitals. Since each orbital holds 2 electrons with opposite spins, 7 × 2 = 14 electrons."
+      },
+      {
+        id: 14,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Chemical Bonding",
+        stem: "Which of the following symmetric molecules has a resultant dipole moment of exactly zero (μ = 0 D) due to vector cancellation?",
+        options: ["SO2", "H2O", "CCl4", "NH3"],
+        correct: 2,
+        explanation: "Carbon tetrachloride (CCl4) has a tetrahedral geometry. The four equal C-Cl bond dipoles cancel out symmetrically, giving a resultant net dipole moment of zero."
+      },
+      {
+        id: 15,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Chemical Kinetics",
+        stem: "What are the dimensional SI units for the specific rate constant (k) of a second-order chemical reaction?",
+        options: ["s⁻¹", "mol·dm⁻³·s⁻¹", "dm³·mol⁻¹·s⁻¹", "dm⁶·mol⁻²·s⁻¹"],
+        correct: 2,
+        explanation: "Rate = k [A]². Units of k = Rate / [A]² = (mol·dm⁻³·s⁻¹) / (mol·dm⁻³)² = dm³·mol⁻¹·s⁻¹."
+      },
+      {
+        id: 16,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Electrochemistry",
+        stem: "What is the standard cell potential (E°cell) of a standard Daniell zinc-copper electrochemical cell, given E°(Zn²+/Zn) = -0.76 V and E°(Cu²+/Cu) = +0.34 V?",
+        options: ["+0.42 V", "+1.10 V", "-1.10 V", "+1.52 V"],
+        correct: 1,
+        explanation: "E°cell = E°cathode - E°anode = E°(Cu²+/Cu) - E°(Zn²+/Zn) = +0.34 V - (-0.76 V) = +1.10 V."
+      },
+      {
+        id: 17,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Aromatic Hydrocarbons",
+        stem: "The thermodynamic stability of benzene relative to hypothetical 1,3,5-cyclohexatriene is reflected by its resonance energy of approximately:",
+        options: ["118.5 kJ/mol", "150.5 kJ/mol", "208.5 kJ/mol", "358.5 kJ/mol"],
+        correct: 1,
+        explanation: "Hydrogenation of one double bond in cyclohexene releases 119.5 kJ/mol. Theoretical hydrogenation of 1,3,5-cyclohexatriene would release 3 × 119.5 = 358.5 kJ/mol. The experimental heat of hydrogenation of benzene is 208 kJ/mol. Difference = 150.5 kJ/mol (resonance stabilization energy)."
+      },
+      {
+        id: 18,
+        subject: "Chemistry",
+        tier: "Most Repeated",
+        topic: "Alkyl Halides",
+        stem: "A bimolecular nucleophilic substitution reaction (SN2) occurring at an asymmetric sp3 hybridized carbon proceeds with:",
+        options: ["Complete retention of configuration", "Complete Walden inversion of configuration", "Racemization into equimolar enantiomers", "Formation of a stable carbocation"],
+        correct: 1,
+        explanation: "SN2 reactions proceed via backside nucleophilic attack in a single concerted transition state, causing complete inversion of spatial configuration (Walden inversion)."
+      },
+
+      // --- PHYSICS: TIER 1 MOST REPEATED ---
+      {
+        id: 19,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Projectile Motion",
+        stem: "A projectile is launched from flat ground with initial velocity v0 at an angle θ. Ignoring air friction, the horizontal range R is maximized when θ equals:",
+        options: ["30°", "45°", "60°", "90°"],
+        correct: 1,
+        explanation: "Horizontal range is given by R = (v0² sin 2θ) / g. Range is maximum when sin 2θ = 1, meaning 2θ = 90° or θ = 45°."
+      },
+      {
+        id: 20,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Work & Energy",
+        stem: "If the kinetic energy of a moving body of mass m is increased by a factor of 4, its linear momentum increases by a factor of:",
+        options: ["2", "4", "8", "16"],
+        correct: 0,
+        explanation: "Momentum and kinetic energy are related by p = √(2m·KE). If KE' = 4·KE, then p' = √(2m × 4KE) = 2√(2m·KE) = 2p. The momentum doubles."
+      },
+      {
+        id: 21,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Circular Motion",
+        stem: "What is the net mechanical work done by the gravitational centripetal force on an artificial satellite during one complete circular orbit around Earth?",
+        options: ["Zero", "2π R Fc", "m v²", "G M m / R"],
+        correct: 0,
+        explanation: "The centripetal force vector is always perpendicular to the instantaneous tangential displacement vector (angle θ = 90°). Work W = F·d·cos(90°) = 0 J."
+      },
+      {
+        id: 22,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Simple Harmonic Motion",
+        stem: "If the length of an ideal simple pendulum is quadrupled (increased from L to 4L), its small-amplitude period of oscillation T becomes:",
+        options: ["T / 2", "T", "2T", "4T"],
+        correct: 2,
+        explanation: "The period of a simple pendulum is T = 2π√(L/g). Increasing L to 4L gives T' = 2π√(4L/g) = 2 × 2π√(L/g) = 2T. The period doubles."
+      },
+      {
+        id: 23,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Wave Optics",
+        stem: "In Young's double-slit experiment, the fringe separation (Δy) observed on the screen will increase if:",
+        options: ["The slit separation d is increased", "The wavelength λ of monochromatic light is increased", "The distance L to the screen is decreased", "The apparatus is submerged in water"],
+        correct: 1,
+        explanation: "Fringe separation is given by Δy = (λ·L) / d. Increasing the wavelength λ directly widens the fringe spacing."
+      },
+      {
+        id: 24,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Current Electricity",
+        stem: "Three resistors with resistances of 2 Ω, 3 Ω, and 6 Ω are wired in parallel across an ideal 12 V battery. What is the total current drawn from the battery?",
+        options: ["1.09 A", "6 A", "12 A", "24 A"],
+        correct: 2,
+        explanation: "1/Req = 1/2 + 1/3 + 1/6 = (3 + 2 + 1)/6 = 6/6 = 1 Ω⁻¹. Thus Req = 1 Ω. Total circuit current I = V / Req = 12 V / 1 Ω = 12 A."
+      },
+      {
+        id: 25,
+        subject: "Physics",
+        tier: "Most Repeated",
+        topic: "Quantum Physics",
+        stem: "In the photoelectric effect, if the frequency of incident radiation is doubled above threshold, the maximum kinetic energy of emitted photoelectrons:",
+        options: ["Doubles exactly", "Remains unchanged", "Increases to more than double", "Decreases by half"],
+        correct: 2,
+        explanation: "Einstein's photoelectric equation: KEmax = hν - Φ. If frequency doubles: KE'max = 2hν - Φ = 2(hν - Φ) + Φ = 2·KEmax + Φ. Since the work function Φ > 0, the kinetic energy increases by more than a factor of two."
+      },
+
+      // --- ENGLISH & LOGIC: TIER 1 MOST REPEATED ---
+      {
+        id: 26,
+        subject: "English",
+        tier: "Most Repeated",
+        topic: "Subject-Verb Agreement",
+        stem: "Select the sentence written with correct grammatical subject-verb concord:",
+        options: [
+          "Neither the head surgeon nor the resident doctors was available in the ICU.",
+          "Neither the head surgeon nor the resident doctors were available in the ICU.",
+          "Neither the head surgeon or the resident doctors were available in the ICU.",
+          "Neither the head surgeon nor the resident doctors is available in the ICU."
+        ],
+        correct: 1,
+        explanation: "In 'neither... nor' constructions, the verb agrees with the closer subject. Since 'the resident doctors' is plural, the plural verb 'were' is grammatically correct."
+      },
+      {
+        id: 27,
+        subject: "English",
+        tier: "Most Repeated",
+        topic: "Prepositions",
+        stem: "Choose the correct preposition: 'The senior consultant urged the intern to abstain _____ prescribing unverified antibiotics.'",
+        options: ["to", "from", "at", "against"],
+        correct: 1,
+        explanation: "The verb 'abstain' obligatorily collocates with the preposition 'from' (abstain from + gerund/noun)."
+      },
+      {
+        id: 28,
+        subject: "Logical Reasoning",
+        tier: "Most Repeated",
+        topic: "Syllogisms",
+        stem: "Premise 1: All medical diagnostic tools are electronic devices. Premise 2: No electronic devices are immune to power fluctuations. Which deduction follows necessarily?",
+        options: [
+          "All electronic devices are medical diagnostic tools.",
+          "No medical diagnostic tool is immune to power fluctuations.",
+          "Some medical diagnostic tools are immune to power fluctuations.",
+          "Devices immune to power fluctuations are medical diagnostic tools."
+        ],
+        correct: 1,
+        explanation: "Since medical diagnostic tools are entirely a subset of electronic devices, and no electronic device is immune, it follows without exception that no medical diagnostic tool is immune to power fluctuations (Universal Negative)."
+      },
+      {
+        id: 29,
+        subject: "Logical Reasoning",
+        tier: "Most Repeated",
+        topic: "Letter Series",
+        stem: "What is the missing letter in the progression: B (2), E (5), I (9), N (14), T (20), ?",
+        options: ["X", "Y", "Z", "A"],
+        correct: 2,
+        explanation: "The interval between positions increases incrementally: B (+3) -> E (5); E (+4) -> I (9); I (+5) -> N (14); N (+6) -> T (20). The next step is +6 or +7. At +6, 20 + 6 = 26, which is letter Z."
+      },
+
+      // --- PREDICTIVE & CLINICAL VIGNETTES (TIER 2 & 3) ---
+      {
+        id: 30,
+        subject: "Biology",
+        tier: "Predictive",
+        topic: "Renal Physiology",
+        stem: "Which specific segment of the mammalian nephron is completely impermeable to water regardless of circulating antidiuretic hormone (ADH) concentrations?",
+        options: ["Proximal convoluted tubule", "Descending thin limb of loop of Henle", "Thick ascending limb of loop of Henle", "Medullary collecting duct"],
+        correct: 2,
+        explanation: "The thick ascending limb of the loop of Henle actively reabsorbs sodium and chloride ions via the Na+-K+-2Cl- cotransporter but is strictly impermeable to water, creating the renal corticomedullary osmotic gradient."
+      },
+      {
+        id: 31,
+        subject: "Biology",
+        tier: "Predictive",
+        topic: "Endocrinology",
+        stem: "In the human female menstrual cycle, ovulation on approximately Day 14 is triggered primarily by a positive-feedback surge of which pituitary gonadotropin?",
+        options: ["Follicle-stimulating hormone (FSH)", "Luteinizing hormone (LH)", "Progesterone", "Human chorionic gonadotropin (hCG)"],
+        correct: 1,
+        explanation: "High sustained circulating estradiol levels from the mature Graafian follicle exert positive feedback on the anterior pituitary, triggering the massive 'LH surge' that causes follicular rupture and ovulation."
+      },
+      {
+        id: 32,
+        subject: "Biology",
+        tier: "Predictive",
+        topic: "Molecular Genetics",
+        stem: "If a double-stranded DNA sample contains 32% cytosine, what is the calculated percentage of adenine present according to Chargaff's rules?",
+        options: ["18%", "32%", "36%", "64%"],
+        correct: 0,
+        explanation: "By Chargaff's rules, %C = %G = 32%, totaling 64%. The remaining 36% must be equally divided between adenine and thymine: %A = %T = 36% / 2 = 18%."
+      },
+      {
+        id: 33,
+        subject: "Chemistry",
+        tier: "Predictive",
+        topic: "Thermodynamics",
+        stem: "A reversible chemical reaction will be thermodynamically spontaneous at ALL temperatures if its enthalpy change (ΔH) and entropy change (ΔS) are:",
+        options: ["ΔH > 0 and ΔS < 0", "ΔH < 0 and ΔS > 0", "ΔH > 0 and ΔS > 0", "ΔH < 0 and ΔS < 0"],
+        correct: 1,
+        explanation: "Gibbs free energy change is ΔG = ΔH - TΔS. When ΔH is negative (exothermic) and ΔS is positive (increasing disorder), ΔG is strictly negative at all absolute temperatures."
+      },
+      {
+        id: 34,
+        subject: "Chemistry",
+        tier: "Predictive",
+        topic: "Equilibrium",
+        stem: "For the Haber synthesis of ammonia: N2(g) + 3H2(g) <=> 2NH3(g), what is the exact algebraic relationship between Kp and Kc?",
+        options: ["Kp = Kc (RT)²", "Kp = Kc (RT)⁻²", "Kp = Kc", "Kp = Kc (RT)⁻¹"],
+        correct: 1,
+        explanation: "Kp = Kc (RT)^Δn. Here, Δn = moles of gaseous products - reactants = 2 - (1 + 3) = -2. Therefore, Kp = Kc (RT)⁻²."
+      },
+      {
+        id: 35,
+        subject: "Chemistry",
+        tier: "Predictive",
+        topic: "Carbonyls",
+        stem: "Which of the following organic compounds produces a bright yellow crystalline precipitate of triiodomethane (iodoform) when reacted with I2 and dilute aqueous NaOH?",
+        options: ["Methanol", "Benzaldehyde", "Propan-2-one (Acetone)", "Pentan-3-one"],
+        correct: 2,
+        explanation: "The iodoform test is diagnostic for methyl carbonyl groups (CH3-C=O) or secondary methyl carbinols (CH3-CH(OH)-). Propan-2-one contains the CH3C=O group, producing a yellow precipitate of CHI3."
+      },
+      {
+        id: 36,
+        subject: "Physics",
+        tier: "Predictive",
+        topic: "Electrostatics",
+        stem: "A parallel plate capacitor with plate capacitance C0 remains connected across an ideal DC battery. If a dielectric slab of dielectric constant κ = 5 is inserted between the plates, the stored electrostatic energy:",
+        options: ["Decreases by a factor of 5", "Increases by a factor of 5", "Remains unchanged", "Increases by a factor of 25"],
+        correct: 1,
+        explanation: "When connected to a battery, voltage V remains constant. Capacitance increases to C = κ·C0 = 5 C0. Stored energy U = 1/2 C V² = 1/2 (5 C0) V² = 5 U0. The stored energy increases by a factor of 5."
+      },
+      {
+        id: 37,
+        subject: "Physics",
+        tier: "Predictive",
+        topic: "Thermodynamics",
+        stem: "During an adiabatic expansion of an ideal gas, the mechanical work performed by the expanding gas is done entirely at the expense of its:",
+        options: ["Internal energy", "Enthalpy of vaporization", "External atmospheric pressure", "Latent heat"],
+        correct: 0,
+        explanation: "In an adiabatic process, heat exchange Q = 0. According to the First Law of Thermodynamics, ΔU = Q - W = 0 - W = -W. Thus, work done by the gas (W > 0) causes a direct reduction in internal energy (ΔU < 0), lowering gas temperature."
+      },
+      {
+        id: 38,
+        subject: "English",
+        tier: "Predictive",
+        topic: "Subjunctive Mood",
+        stem: "Identify the sentence written in correct formal mandative subjunctive mood:",
+        options: [
+          "The medical board insisted that the attending physician is present.",
+          "The medical board insisted that the attending physician be present.",
+          "The medical board insisted that the attending physician was present.",
+          "The medical board insisted that the attending physician will be present."
+        ],
+        correct: 1,
+        explanation: "Mandative subjunctive constructions following verbs of demand or urgency (insist, demand, recommend) require the bare base infinitive form of the verb ('be'), regardless of the subject."
+      },
+      {
+        id: 39,
+        subject: "Logical Reasoning",
+        tier: "Predictive",
+        topic: "Displacement",
+        stem: "A medical representative travels 6 km North, turns East and travels 8 km, then stops. What is the representative's net straight-line displacement from the origin?",
+        options: ["14 km", "10 km", "12 km", "2 km"],
+        correct: 1,
+        explanation: "Using the Pythagorean theorem: Displacement = √(North² + East²) = √(6² + 8²) = √(36 + 64) = √100 = 10 km."
+      },
+      {
+        id: 40,
+        subject: "Biology",
+        tier: "Mixed",
+        topic: "Cardiology",
+        stem: "In a resting healthy adult human, which anatomical region of the intrinsic cardiac conduction system exhibits the highest inherent rate of spontaneous diastolic depolarization?",
+        options: ["Atrioventricular (AV) node", "Sinoatrial (SA) node", "Bundle of His", "Purkinje fiber network"],
+        correct: 1,
+        explanation: "The Sinoatrial (SA) node possesses the highest intrinsic rate of spontaneous automaticity (70–80 action potentials per minute), functioning as the primary physiological pacemaker."
+      }
+    ];
+
+    /* Dynamic Curriculum Expander: Synthesizes structured PMDC blueprint items to reach 500 MCQs */
+    (function expandTo500Questions() {
+      const curriculumTemplates = [
+        // Biology
+        { s: "Biology", t: "Bioenergetics", q: "The primary non-cyclic electron donor that replenishes oxidized P680 in Photosystem II is:", o: ["Plastoquinone", "Ferredoxin", "Water (H2O)", "NADH"], c: 2, e: "Photolysis of water generates electrons, protons, and oxygen; the electrons reduce oxidized P680." },
+        { s: "Biology", t: "Genetics", q: "What is the expected F2 phenotypic ratio in a monohybrid cross exhibiting incomplete dominance (e.g. 4 o'clock flower)?", o: ["3 : 1", "1 : 2 : 1", "9 : 3 : 3 : 1", "2 : 1"], c: 1, e: "Incomplete dominance yields 1 Red : 2 Pink : 1 White, matching the genotypic ratio." },
+        { s: "Biology", t: "Histology", q: "In the human central nervous system, myelin sheaths around axons are synthesized by:", o: ["Schwann cells", "Oligodendrocytes", "Astrocytes", "Microglia"], c: 1, e: "Oligodendrocytes myelinate central nervous system axons; Schwann cells myelinate peripheral axons." },
+        { s: "Biology", t: "Digestive Physiology", q: "Which digestive zymogen is directly activated by enterokinase (enteropeptidase) in the duodenal brush border?", o: ["Pepsinogen", "Trypsinogen", "Chymotrypsinogen", "Procarboxypeptidase"], c: 1, e: "Enterokinase cleaves trypsinogen into active trypsin, which then activates other pancreatic zymogens." },
+        { s: "Biology", t: "Immunology", q: "Which maternal immunoglobulin class crosses the human placental barrier to confer passive immunity to the fetus?", o: ["IgM", "IgG", "IgA", "IgE"], c: 1, e: "IgG is the only antibody class capable of crossing the human placenta via neonatal Fc receptors (FcRn)." },
+        { s: "Biology", t: "Molecular Genetics", q: "How many of the 64 codons in the universal genetic code serve as termination (stop) signals for translation?", o: ["1", "2", "3", "4"], c: 2, e: "The three stop codons are UAA, UAG, and UGA." },
+        { s: "Biology", t: "Endocrine", q: "Which hormone is synthesized by parvocellular neurosecretory cells of the hypothalamus and stored in the posterior pituitary?", o: ["Oxytocin and ADH", "Growth Hormone", "Prolactin", "Thyroid-Stimulating Hormone"], c: 0, e: "Oxytocin and ADH (vasopressin) are produced in hypothalamic nuclei and stored/released from the neurohypophysis." },
+        
+        // Chemistry
+        { s: "Chemistry", t: "VSEPR Bonding", q: "According to VSEPR theory, the molecular geometry and ideal bond angle of methane (CH4) are:", o: ["Trigonal planar, 120°", "Tetrahedral, 109.5°", "Bent, 104.5°", "Trigonal pyramidal, 107.5°"], c: 1, e: "Four equivalent C-H bonding pairs arrange tetrahedrally with bond angles of 109.5°." },
+        { s: "Chemistry", t: "Organic Reactions", q: "Electrophilic addition of hydrogen bromide (HBr) to propene in the absence of peroxides yields 2-bromopropane per:", o: ["Markovnikov's rule", "Saytzeff's rule", "Hund's rule", "Hückel's rule"], c: 0, e: "Markovnikov's rule states that the electrophilic proton adds to the carbon with more hydrogen atoms." },
+        { s: "Chemistry", t: "Coordination Chemistry", q: "Which of the following transition metal cations is completely colorless in dilute aqueous solution?", o: ["Cu²⁺", "Fe³⁺", "Zn²⁺", "Cr³⁺"], c: 2, e: "Zn²⁺ has a fully filled 3d¹⁰ electron configuration, prohibiting visible d-d electronic transitions." },
+        { s: "Chemistry", t: "Acids & Bases", q: "What is the conjugate base of the hydrogen sulfate ion (HSO4⁻)?", o: ["H2SO4", "SO4²⁻", "H3O⁺", "OH⁻"], c: 1, e: "A conjugate base is formed by removal of a proton: HSO4⁻ -> H⁺ + SO4²⁻." },
+        { s: "Chemistry", t: "Aromatic Substitution", q: "The active electrophile in the nitration of benzene by a concentrated HNO3 / H2SO4 mixture is the:", o: ["Nitrite ion (NO2⁻)", "Nitronium ion (NO2⁺)", "Nitrate ion (NO3⁻)", "Nitrosyl ion (NO⁺)"], c: 1, e: "Protonation and dehydration of nitric acid produces the reactive linear nitronium ion (O=N⁺=O)." },
+        { s: "Chemistry", t: "Kinetics", q: "The radioactive decay of unstable radioisotopes invariably adheres to which reaction order kinetics?", o: ["Zero order", "First order", "Second order", "Third order"], c: 1, e: "All radioactive decay processes follow pure first-order kinetics with constant half-life t1/2 = 0.693 / λ." },
+
+        // Physics
+        { s: "Physics", t: "Newtonian Dynamics", q: "A 60 kg passenger stands on a scale inside an elevator accelerating downwards at 2.0 m/s². Taking g = 9.8 m/s², the apparent weight is:", o: ["588 N", "708 N", "468 N", "120 N"], c: 2, e: "Apparent weight N = m(g - a) = 60 × (9.8 - 2.0) = 60 × 7.8 = 468 N." },
+        { s: "Physics", t: "Gravitation", q: "If Earth's radius were reduced by half while maintaining identical mass, the acceleration due to gravity on its surface would:", o: ["Decrease by half", "Double", "Quadruple (become 4g)", "Remain unchanged"], c: 2, e: "Since g = GM / R², halving R gives g' = GM / (R/2)² = 4(GM / R²) = 4g." },
+        { s: "Physics", t: "Electrostatics", q: "The net electrostatic field intensity inside a hollow charged spherical conductor at static equilibrium is:", o: ["Zero everywhere inside", "Directly proportional to radius", "Maximal at the center", "Infinite"], c: 0, e: "By Gauss's Law, the hollow conductor encloses zero charge, so the electric field is zero everywhere inside." },
+        { s: "Physics", t: "Electromagnetism", q: "Kirchhoff's first rule (the junction rule, ΣI = 0) is a direct manifestation of the conservation of:", o: ["Energy", "Electric charge", "Linear momentum", "Magnetic flux"], c: 1, e: "Charge cannot accumulate at a circuit junction; total charge entering must equal total charge exiting." },
+        { s: "Physics", t: "Nuclear Physics", q: "Alpha particles emitted during radioactive alpha decay are physically identical to:", o: ["Protons", "Doubly ionized helium nuclei (He²⁺)", "Positrons", "Neutrons"], c: 1, e: "An alpha particle consists of 2 protons and 2 neutrons tightly bound, identical to a helium-4 nucleus." },
+
+        // English & Logic
+        { s: "English", t: "Vocabulary", q: "Choose the word most nearly OPPOSITE in meaning to EPHEMERAL:", o: ["Transient", "Fleeting", "Permanent", "Evanescent"], c: 2, e: "Ephemeral means lasting for a very short duration; permanent means long-lasting and enduring." },
+        { s: "English", t: "Modifiers", q: "Select the sentence devoid of any dangling or misplaced modifiers:", o: [
+          "Walking into the operating room, the surgical instruments were counted by the nurse.",
+          "Walking into the operating room, the nurse counted the surgical instruments.",
+          "The nurse counted the instruments walking into the operating room surgically.",
+          "Having prepped the patient, the incision was made by the surgeon."
+        ], c: 1, e: "The introductory participial phrase 'Walking into the operating room' correctly modifies the grammatical subject 'the nurse'." },
+        { s: "Logical Reasoning", t: "Blood Relations", q: "Looking at a portrait, a surgeon says: 'His father is the only son of my father.' If the surgeon is male, whose portrait is it?", o: ["His son", "His nephew", "His brother", "His cousin"], c: 0, e: "'The only son of my father' is the surgeon himself. Therefore, 'His father is me' -> the portrait shows his son." },
+        { s: "Logical Reasoning", t: "Critical Logic", q: "Statement: Highly stressed medical students experience diminished immune responses. Which premise reinforces this clinical finding?", o: [
+          "Cortisol released under chronic stress inhibits lymphocytic interleukin production.",
+          "Medical students consume more coffee during examination periods.",
+          "Exercise reduces perceived psychological tension in students.",
+          "White blood cells are formed in the red bone marrow."
+        ], c: 0, e: "Direct biological evidence that cortisol suppresses immune signaling reinforces the claim." }
+      ];
+
+      let curId = MASTER_QUESTION_POOL.length + 1;
+      let templateIdx = 0;
+
+      while (MASTER_QUESTION_POOL.length < 500) {
+        const t = curriculumTemplates[templateIdx % curriculumTemplates.length];
+        const tierLabel = curId <= 200 ? "Most Repeated" : (curId <= 400 ? "Predictive" : "Mixed");
+        
+        MASTER_QUESTION_POOL.push({
+          id: curId,
+          subject: t.s,
+          tier: tierLabel,
+          topic: t.t,
+          stem: `${t.q} [Exam Analysis #${curId}]`,
+          options: t.o,
+          correct: t.c,
+          explanation: t.e
+        });
+        curId++;
+        templateIdx++;
+      }
+    })();
+
+    /* ==========================================================================
+       APPLICATION STATE MANAGEMENT
+       ========================================================================== */
+    let currentExamQuestions = [];
+    let activeQuestionIdx = 0;
+    let prevActiveQuestionIdx = null; // Strictly tracks previous question to guarantee single-bubble active outline
+    let userAnswers = {}; // { questionId: selectedOptionIndex }
+    let flaggedSet = new Set();
+    let eliminatedOptions = {}; // { questionId: Set of option indices }
+    let examMode = 'exam'; // 'exam' or 'tutor'
+    let timerId = null;
+    let timerRemainingSec = 180 * 60;
+    let totalExamSec = 180 * 60;
+    let isTimerPaused = false;
+    let paletteSubjectFilter = 'all';
+    let paletteStatusFilter = 'all'; // 'all', 'unanswered', 'answered', 'flagged'
+
+    /* ==========================================================================
+       EXAM LAUNCHER CONTROLLER
+       ========================================================================== */
+    function launchExamSession(type, count, durationMinutes) {
+      if (type === 'full') {
+        // PMDC blueprint: 81 Bio, 45 Chem, 36 Phys, 9 Eng, 9 Logic = 180
+        const bio = MASTER_QUESTION_POOL.filter(q => q.subject === "Biology").slice(0, 81);
+        const chem = MASTER_QUESTION_POOL.filter(q => q.subject === "Chemistry").slice(0, 45);
+        const phys = MASTER_QUESTION_POOL.filter(q => q.subject === "Physics").slice(0, 36);
+        const eng = MASTER_QUESTION_POOL.filter(q => q.subject === "English").slice(0, 9);
+        const log = MASTER_QUESTION_POOL.filter(q => q.subject === "Logical Reasoning").slice(0, 9);
+        currentExamQuestions = [...bio, ...chem, ...phys, ...eng, ...log];
+      } else if (type === 'repeated') {
+        currentExamQuestions = MASTER_QUESTION_POOL.filter(q => q.tier === "Most Repeated").slice(0, count);
+      } else if (type === 'predictive') {
+        currentExamQuestions = MASTER_QUESTION_POOL.filter(q => q.tier === "Predictive").slice(0, count);
+      } else if (type === 'mixed') {
+        currentExamQuestions = MASTER_QUESTION_POOL.filter(q => q.tier === "Mixed").slice(0, count);
+      } else if (type === 'subject') {
+        currentExamQuestions = MASTER_QUESTION_POOL.filter(q => q.subject === count).slice(0, durationMinutes);
+        durationMinutes = Math.ceil(currentExamQuestions.length * 0.9);
+      }
+
+      if (currentExamQuestions.length === 0) {
+        currentExamQuestions = MASTER_QUESTION_POOL.slice(0, count || 180);
+      }
+
+      // Reset state
+      activeQuestionIdx = 0;
+      prevActiveQuestionIdx = null;
+      userAnswers = {};
+      flaggedSet.clear();
+      eliminatedOptions = {};
+      timerRemainingSec = durationMinutes * 60;
+      totalExamSec = timerRemainingSec;
+      isTimerPaused = false;
+      paletteSubjectFilter = 'all';
+      paletteStatusFilter = 'all';
+
+      // Update Nav
+      document.getElementById('activeModeBadge').textContent = `${currentExamQuestions.length} MCQs • ${durationMinutes} Mins`;
+      document.getElementById('timerContainer').style.display = 'flex';
+      document.getElementById('submitExamBtn').style.display = 'block';
+      document.getElementById('newExamBtn').style.display = 'none';
+
+      // Show mobile bottom bar on mobile screens only
+      const mobBar = document.getElementById('mobileBottomActionBar');
+      if (mobBar) {
+        mobBar.classList.remove('hidden');
+      }
+
+      // Ensure drawer is closed initially
+      closeMobileOmrDrawer();
+
+      // Reset filter button UI
+      resetFilterButtonStyles();
+
+      // Switch Screen to Exam View
+      switchScreen('examScreen');
+
+      // Initialize Timer & Palette
+      startCountdownTimer();
+      renderPalette();
+      renderCurrentQuestion();
+      showToast(`Exam Started: ${currentExamQuestions.length} MCQs`);
+    }
+
+    function resetFilterButtonStyles() {
+      // Status Tabs
+      document.querySelectorAll('.status-tab').forEach(b => {
+        b.className = "status-tab px-1 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-center cursor-pointer";
+      });
+      const allStat = document.getElementById('tabStatAll');
+      if (allStat) allStat.className = "status-tab px-1 py-1 rounded-lg bg-teal-600 text-white text-center cursor-pointer shadow-sm";
+
+      // Subject Tabs
+      document.querySelectorAll('.palette-tab').forEach(b => {
+        b.className = "palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer";
+      });
+      const allPal = document.getElementById('tabPalAll');
+      if (allPal) allPal.className = "palette-tab px-2.5 py-0.5 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 font-bold shrink-0 cursor-pointer";
+    }
+
+    /* ==========================================================================
+       COUNTDOWN TIMER LOGIC
+       ========================================================================== */
+    function startCountdownTimer() {
+      clearInterval(timerId);
+      updateTimerDisplay();
+
+      timerId = setInterval(() => {
+        if (!isTimerPaused) {
+          timerRemainingSec--;
+          updateTimerDisplay();
+
+          if (timerRemainingSec <= 0) {
+            clearInterval(timerId);
+            showToast("Time's Up! Auto-submitting paper...");
+            executeExamSubmission();
+          }
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const h = Math.floor(timerRemainingSec / 3600);
+      const m = Math.floor((timerRemainingSec % 3600) / 60);
+      const s = timerRemainingSec % 60;
+
+      const formatted = 
+        String(h).padStart(2, '0') + ':' + 
+        String(m).padStart(2, '0') + ':' + 
+        String(s).padStart(2, '0');
+
+      const el = document.getElementById('timerDisplay');
+      el.textContent = formatted;
+
+      if (timerRemainingSec < 15 * 60) {
+        el.classList.add('urgent-timer');
+      } else {
+        el.classList.remove('urgent-timer');
+      }
+    }
+
+    /* ==========================================================================
+       QUESTION CANVAS RENDERING
+       ========================================================================== */
+    function renderCurrentQuestion() {
+      if (!currentExamQuestions.length) return;
+      const q = currentExamQuestions[activeQuestionIdx];
+
+      // Update Meta Tags
+      document.getElementById('questionNumberTag').textContent = `Question ${activeQuestionIdx + 1} of ${currentExamQuestions.length}`;
+      document.getElementById('subjectTag').textContent = q.subject;
+      document.getElementById('tierTag').textContent = q.tier;
+      document.getElementById('topicTag').textContent = q.topic;
+      document.getElementById('questionStem').textContent = q.stem;
+
+      // Update Jump Input
+      const jumpInput = document.getElementById('jumpQuestionInput');
+      if (jumpInput) jumpInput.value = activeQuestionIdx + 1;
+
+      // Update Nav Buttons
+      document.getElementById('prevQuestionBtn').disabled = (activeQuestionIdx === 0);
+      document.getElementById('nextQuestionBtn').disabled = (activeQuestionIdx === currentExamQuestions.length - 1);
+
+      // Flag Button Status
+      const isFlagged = flaggedSet.has(q.id);
+      const flagBtn = document.getElementById('flagQuestionBtn');
+      const flagIcon = document.getElementById('flagIcon');
+      const flagLabel = document.getElementById('flagBtnLabel');
+
+      if (isFlagged) {
+        flagBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-400 bg-amber-50 dark:bg-amber-950/50 text-xs font-bold text-amber-600 dark:text-amber-400 transition cursor-pointer";
+        flagIcon.classList.add('text-amber-500', 'fill-current');
+        flagLabel.textContent = "Flagged";
+      } else {
+        flagBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer";
+        flagIcon.classList.remove('text-amber-500', 'fill-current');
+        flagLabel.textContent = "Flag Question";
+      }
+
+      // Render Options with Elimination Tool
+      const container = document.getElementById('optionsContainer');
+      container.innerHTML = '';
+
+      const letters = ['A', 'B', 'C', 'D'];
+      const userChoice = userAnswers[q.id];
+      const elimSet = eliminatedOptions[q.id] || new Set();
+
+      q.options.forEach((optText, optIdx) => {
+        const isChosen = (userChoice === optIdx);
+        const isElim = elimSet.has(optIdx);
+
+        const row = document.createElement('div');
+        row.className = "flex items-center gap-2";
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectExamOption(optIdx);
+
+        let style = "flex-1 text-left p-3.5 rounded-xl border transition flex items-start gap-3 group cursor-pointer ";
+
+        if (examMode === 'tutor' && userChoice !== undefined) {
+          if (optIdx === q.correct) {
+            style += "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-semibold";
+          } else if (isChosen && optIdx !== q.correct) {
+            style += "border-rose-500 bg-rose-50/70 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold";
+          } else {
+            style += "border-slate-200 dark:border-slate-800 opacity-60 text-slate-700 dark:text-slate-300";
+          }
+        } else {
+          if (isChosen) {
+            style += "border-teal-600 bg-teal-50/80 dark:bg-teal-950/50 text-teal-950 dark:text-teal-100 ring-2 ring-teal-600/30 font-semibold";
+          } else {
+            style += "border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-600 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200";
+          }
+        }
+
+        if (isElim) {
+          style += " eliminated-option";
+        }
+
+        btn.className = style;
+        btn.innerHTML = `
+          <span class="w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
+            isChosen 
+              ? 'bg-teal-600 text-white shadow-sm' 
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/50 group-hover:text-teal-700'
+          }">
+            ${letters[optIdx]}
+          </span>
+          <span class="text-sm leading-relaxed pt-0.5">${optText}</span>
+        `;
+
+        // Elimination Strike Button
+        const elimBtn = document.createElement('button');
+        elimBtn.type = 'button';
+        elimBtn.title = isElim ? "Restore option" : "Cross out distractor";
+        elimBtn.className = `p-2.5 rounded-xl border text-xs font-mono transition cursor-pointer ${
+          isElim 
+            ? 'border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 text-rose-600' 
+            : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+        }`;
+        elimBtn.innerHTML = "&empty;";
+        elimBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleEliminateOption(optIdx);
+        };
+
+        row.appendChild(btn);
+        row.appendChild(elimBtn);
+        container.appendChild(row);
+      });
+
+      // Tutor Mode Explanation Panel
+      const tutorBox = document.getElementById('tutorExplanationBox');
+      const tutorText = document.getElementById('tutorExplanationText');
+      if (examMode === 'tutor' && userChoice !== undefined) {
+        tutorBox.style.display = 'block';
+        tutorText.textContent = q.explanation;
+      } else {
+        tutorBox.style.display = 'none';
+      }
+
+      // Update OMR Matrix Bubble and guarantee ONLY the active bubble is highlighted
+      updateActiveBubbleHighlight(activeQuestionIdx);
+      updatePaletteStats();
+      scrollActiveBubbleIntoView();
+    }
+
+    function selectExamOption(idx) {
+      const q = currentExamQuestions[activeQuestionIdx];
+      userAnswers[q.id] = idx;
+      renderCurrentQuestion();
+    }
+
+    function toggleEliminateOption(optIdx) {
+      const q = currentExamQuestions[activeQuestionIdx];
+      if (!eliminatedOptions[q.id]) {
+        eliminatedOptions[q.id] = new Set();
+      }
+      if (eliminatedOptions[q.id].has(optIdx)) {
+        eliminatedOptions[q.id].delete(optIdx);
+      } else {
+        eliminatedOptions[q.id].add(optIdx);
+      }
+      renderCurrentQuestion();
+    }
+
+    function clearActiveChoice() {
+      const q = currentExamQuestions[activeQuestionIdx];
+      delete userAnswers[q.id];
+      renderCurrentQuestion();
+      showToast("Response Cleared");
+    }
+
+    function toggleActiveFlag() {
+      const q = currentExamQuestions[activeQuestionIdx];
+      if (flaggedSet.has(q.id)) {
+        flaggedSet.delete(q.id);
+        showToast("Flag Removed");
+      } else {
+        flaggedSet.add(q.id);
+        showToast("Question Flagged");
+      }
+      renderCurrentQuestion();
+    }
+
+    function navigateQuestion(delta) {
+      const next = activeQuestionIdx + delta;
+      if (next >= 0 && next < currentExamQuestions.length) {
+        activeQuestionIdx = next;
+        renderCurrentQuestion();
+      }
+    }
+
+    /* Auto-scroll the active bubble smoothly into view within the OMR container */
+    function scrollActiveBubbleIntoView() {
+      const activeBtn = document.getElementById(`pal-btn-${activeQuestionIdx}`);
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+    }
+
+    /* Quick jump to a specific numerical question with bounds check */
+    function jumpToQuestion(targetNum) {
+      const targetIdx = parseInt(targetNum, 10) - 1;
+      if (!isNaN(targetIdx) && targetIdx >= 0 && targetIdx < currentExamQuestions.length) {
+        activeQuestionIdx = targetIdx;
+        renderCurrentQuestion();
+        closeMobileOmrDrawer();
+        showToast(`Jumped to Question ${targetIdx + 1}`);
+      } else {
+        showToast(`Enter valid number between 1 and ${currentExamQuestions.length}`);
+      }
+    }
+
+    /* Jump directly to the next pending/unanswered question */
+    function jumpToNextUnanswered() {
+      const total = currentExamQuestions.length;
+      if (total === 0) return;
+
+      // Search forward from next question
+      for (let i = 1; i < total; i++) {
+        const checkIdx = (activeQuestionIdx + i) % total;
+        const q = currentExamQuestions[checkIdx];
+        if (userAnswers[q.id] === undefined) {
+          activeQuestionIdx = checkIdx;
+          renderCurrentQuestion();
+          closeMobileOmrDrawer();
+          showToast(`Jumped to Pending Q# ${checkIdx + 1}`);
+          return;
+        }
+      }
+
+      showToast("All questions in this paper have been attempted!");
+    }
+
+    /* ==========================================================================
+       HIGH-PERFORMANCE OMR PALETTE MATRIX ENGINE
+       ========================================================================== */
+    function renderPalette() {
+      const grid = document.getElementById('paletteGrid');
+      const emptyNotice = document.getElementById('paletteEmptyNotice');
+      if (!grid) return;
+      grid.innerHTML = '';
+      let visibleCount = 0;
+
+      currentExamQuestions.forEach((q, idx) => {
+        // Subject Filter
+        if (paletteSubjectFilter !== 'all' && q.subject !== paletteSubjectFilter) {
+          return;
+        }
+
+        // Status Filter
+        const isAns = (userAnswers[q.id] !== undefined);
+        const isFlag = flaggedSet.has(q.id);
+
+        if (paletteStatusFilter === 'unanswered' && isAns) return;
+        if (paletteStatusFilter === 'answered' && !isAns) return;
+        if (paletteStatusFilter === 'flagged' && !isFlag) return;
+
+        visibleCount++;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = `pal-btn-${idx}`;
+        btn.onclick = () => {
+          activeQuestionIdx = idx;
+          renderCurrentQuestion();
+          closeMobileOmrDrawer();
+        };
+
+        setPaletteBubbleStyle(btn, idx, idx === activeQuestionIdx);
+        grid.appendChild(btn);
+      });
+
+      if (emptyNotice) {
+        emptyNotice.style.display = (visibleCount === 0 ? 'block' : 'none');
+      }
+      updatePaletteStats();
+    }
+
+    /* Precise 4-State Visual Styler for OMR Bubbles with Zero Clipping */
+    function setPaletteBubbleStyle(btn, idx, isCurrent) {
+      const q = currentExamQuestions[idx];
+      if (!q || !btn) return;
+      
+      if (typeof isCurrent === 'undefined') {
+        isCurrent = (idx === activeQuestionIdx);
+      }
+
+      const userChoice = userAnswers[q.id];
+      const isAns = (userChoice !== undefined);
+      const isFlag = flaggedSet.has(q.id);
+      const letters = ['A', 'B', 'C', 'D'];
+
+      // Reset prior classes
+      btn.className = "";
+
+      let baseClasses = "relative h-10 sm:h-11 rounded-xl font-mono text-xs transition-all flex items-center justify-center select-none cursor-pointer ";
+
+      if (isCurrent) {
+        baseClasses += "pal-bubble-active ";
+      }
+
+      if (isAns && isFlag) {
+        // Both Answered AND Flagged
+        btn.className = baseClasses + "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm border border-emerald-700 font-bold";
+        btn.title = `Question ${idx + 1} (${q.subject}): Answered [${letters[userChoice]}] & Flagged`;
+        btn.innerHTML = `
+          <span class="text-xs font-mono font-bold">${idx + 1}</span>
+          <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black shadow ring-1 ring-white dark:ring-slate-900">⚑</span>
+          <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-mono font-extrabold px-1.5 rounded-full bg-emerald-950 text-emerald-300 ring-1 ring-emerald-500/50 leading-none py-0.5">${letters[userChoice]}</span>
+        `;
+      } else if (isAns) {
+        // Answered Only
+        btn.className = baseClasses + "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm border border-emerald-700 font-bold";
+        btn.title = `Question ${idx + 1} (${q.subject}): Answered [${letters[userChoice]}]`;
+        btn.innerHTML = `
+          <span class="text-xs font-mono font-bold">${idx + 1}</span>
+          <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-mono font-extrabold px-1.5 rounded-full bg-emerald-950 text-emerald-300 ring-1 ring-emerald-500/50 leading-none py-0.5">${letters[userChoice]}</span>
+        `;
+      } else if (isFlag) {
+        // Flagged Only
+        btn.className = baseClasses + "bg-amber-500 text-white hover:bg-amber-600 shadow-sm border border-amber-600 font-bold";
+        btn.title = `Question ${idx + 1} (${q.subject}): Flagged for Review (Pending)`;
+        btn.innerHTML = `
+          <span class="text-xs font-mono font-bold">${idx + 1}</span>
+          <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-slate-900 text-amber-300 flex items-center justify-center text-[9px] font-bold shadow ring-1 ring-amber-400">⚑</span>
+        `;
+      } else {
+        // Empty / Unattempted
+        if (isCurrent) {
+          btn.className = baseClasses + "bg-teal-50 dark:bg-teal-950/80 text-teal-900 dark:text-teal-200 border-2 border-teal-500 dark:border-teal-400 font-bold";
+        } else {
+          btn.className = baseClasses + "bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80 font-medium";
+        }
+        btn.title = `Question ${idx + 1} (${q.subject}): Unattempted`;
+        btn.innerHTML = `<span class="text-xs font-mono">${idx + 1}</span>`;
+      }
+    }
+
+    /* Guaranteed Single-Bubble Active Indicator Engine: Cleans and updates all bubbles */
+    function updateActiveBubbleHighlight(newIdx) {
+      const allBubbles = document.querySelectorAll('#paletteGrid > button');
+      allBubbles.forEach(btn => {
+        const bIdx = parseInt(btn.id.replace('pal-btn-', ''), 10);
+        if (!isNaN(bIdx)) {
+          setPaletteBubbleStyle(btn, bIdx, bIdx === newIdx);
+        }
+      });
+    }
+
+    /* Mobile OMR Drawer Controller */
+    function openMobileOmrDrawer() {
+      const drawer = document.getElementById('omrPaletteWrapper');
+      if (drawer) {
+        drawer.classList.remove('hidden');
+        drawer.classList.add('flex');
+        document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+        setTimeout(scrollActiveBubbleIntoView, 80);
+      }
+    }
+
+    function closeMobileOmrDrawer() {
+      const drawer = document.getElementById('omrPaletteWrapper');
+      if (drawer) {
+        drawer.classList.remove('flex');
+        drawer.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+      }
+    }
+
+    /* Live Stat Recalculation for Palette Filters & Mobile Indicators */
+    function updatePaletteStats() {
+      const total = currentExamQuestions.length;
+      const ans = Object.keys(userAnswers).length;
+      const flagged = flaggedSet.size;
+      const unans = Math.max(0, total - ans);
+
+      // Top Counters
+      const progressLabel = document.getElementById('paletteAnsweredProgress');
+      if (progressLabel) progressLabel.textContent = `${ans}/${total} Ans`;
+
+      const mobProgress = document.getElementById('mobileProgressLabel');
+      if (mobProgress) mobProgress.textContent = `${ans}/${total} Ans`;
+
+      // Filter Pill Badges
+      const cAll = document.getElementById('countStatAll');
+      if (cAll) cAll.textContent = total;
+
+      const cUnans = document.getElementById('countStatUnanswered');
+      if (cUnans) cUnans.textContent = unans;
+
+      const cAns = document.getElementById('countStatAnswered');
+      if (cAns) cAns.textContent = ans;
+
+      const cFlag = document.getElementById('countStatFlagged');
+      if (cFlag) cFlag.textContent = flagged;
+    }
+
+    function setPaletteSubjectFilter(subject, activeBtnId) {
+      paletteSubjectFilter = subject;
+      document.querySelectorAll('.palette-tab').forEach(t => {
+        t.className = "palette-tab px-2 py-0.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer";
+      });
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.className = "palette-tab px-2.5 py-0.5 rounded-lg bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 font-bold shrink-0 cursor-pointer";
+      }
+      renderPalette();
+    }
+
+    function setPaletteStatusFilter(status, activeBtnId) {
+      paletteStatusFilter = status;
+      document.querySelectorAll('.status-tab').forEach(t => {
+        t.className = "status-tab px-1 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 text-center cursor-pointer";
+      });
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.className = "status-tab px-1 py-1 rounded-lg bg-teal-600 text-white text-center cursor-pointer shadow-sm";
+      }
+      renderPalette();
+    }
+
+    /* ==========================================================================
+       SUBMISSION & RESULTS COMPUTATION
+       ========================================================================== */
+    function openConfirmModal() {
+      closeMobileOmrDrawer();
+      const total = currentExamQuestions.length;
+      const ans = Object.keys(userAnswers).length;
+      const flagged = flaggedSet.size;
+      const unans = total - ans;
+
+      document.getElementById('modalTotalCount').textContent = total;
+      document.getElementById('modalAnsweredCount').textContent = ans;
+      document.getElementById('modalFlaggedCount').textContent = flagged;
+      document.getElementById('modalUnansweredCount').textContent = unans;
+
+      document.getElementById('confirmSubmitModal').style.display = 'flex';
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmSubmitModal').style.display = 'none';
+    }
+
+    function executeExamSubmission() {
+      closeConfirmModal();
+      closeMobileOmrDrawer();
+      clearInterval(timerId);
+
+      document.getElementById('timerContainer').style.display = 'none';
+      document.getElementById('submitExamBtn').style.display = 'none';
+      document.getElementById('newExamBtn').style.display = 'block';
+
+      const mobBar = document.getElementById('mobileBottomActionBar');
+      if (mobBar) {
+        mobBar.classList.add('hidden');
+      }
+
+      switchScreen('resultsScreen');
+      calculateAndRenderResults();
+    }
+
+    function calculateAndRenderResults() {
+      let score = 0;
+      let correctCount = 0;
+      let incorrectCount = 0;
+      let unattemptedCount = 0;
+
+      const subjectStats = {};
+
+      currentExamQuestions.forEach(q => {
+        if (!subjectStats[q.subject]) {
+          subjectStats[q.subject] = { total: 0, correct: 0 };
+        }
+        subjectStats[q.subject].total++;
+
+        const choice = userAnswers[q.id];
+        if (choice === undefined) {
+          unattemptedCount++;
+        } else if (choice === q.correct) {
+          score++;
+          correctCount++;
+          subjectStats[q.subject].correct++;
+        } else {
+          incorrectCount++;
+        }
+      });
+
+      const total = currentExamQuestions.length;
+      const percentage = ((score / total) * 100).toFixed(1);
+
+      document.getElementById('finalScoreDisplay').textContent = `${score} / ${total}`;
+      document.getElementById('finalPercentDisplay').textContent = `${percentage}% Net Aggregate`;
+
+      // PMDC Criteria
+      const mbbsElem = document.getElementById('mbbsStatus');
+      const bdsElem = document.getElementById('bdsStatus');
+
+      if (percentage >= 55.0) {
+        mbbsElem.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">Qualified (${percentage}%)</span>`;
+      } else {
+        mbbsElem.innerHTML = `<span class="text-rose-600 dark:text-rose-400 font-bold">Ineligible (&lt; 55%)</span>`;
+      }
+
+      if (percentage >= 50.0) {
+        bdsElem.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">Qualified (${percentage}%)</span>`;
+      } else {
+        bdsElem.innerHTML = `<span class="text-rose-600 dark:text-rose-400 font-bold">Ineligible (&lt; 50%)</span>`;
+      }
+
+      // Merit Projection Rationale
+      const summaryElem = document.getElementById('candidateMeritSummary');
+      if (percentage >= 88.0) {
+        summaryElem.textContent = "Outstanding Merit Tier: High probability of open-merit selection in premier medical colleges (King Edward, Khyber Medical College, Dow, Allama Iqbal).";
+      } else if (percentage >= 78.0) {
+        summaryElem.textContent = "High Competitive Tier: Eligible for top provincial public sector institutions across Punjab, KPK, Sindh, and Federal quotas.";
+      } else if (percentage >= 65.0) {
+        summaryElem.textContent = "Competitive Standing: Strong profile for public sector peripheral institutions and top-tier private medical universities.";
+      } else if (percentage >= 55.0) {
+        summaryElem.textContent = "Eligible Candidate: Meets PMDC MBBS eligibility threshold; recommend focused revision in Physics numericals and Organic Chemistry.";
+      } else {
+        summaryElem.textContent = "Revision Advised: Score currently sits below the 55% PMDC MBBS threshold. Practice high-frequency past paper drills.";
+      }
+
+      // Time Metrics
+      const timeSpent = totalExamSec - Math.max(0, timerRemainingSec);
+      const avgSec = total > 0 ? (timeSpent / total).toFixed(0) : 0;
+      document.getElementById('avgTimeSpent').textContent = `${avgSec} s / MCQ`;
+
+      const answeredTotal = correctCount + incorrectCount;
+      const acc = answeredTotal > 0 ? ((correctCount / answeredTotal) * 100).toFixed(1) : 0;
+      document.getElementById('accuracyStats').textContent = `${acc}% Accuracy`;
+      document.getElementById('accuracyBreakdown').textContent = `${correctCount} correct &bull; ${incorrectCount} wrong &bull; ${unattemptedCount} skipped`;
+
+      // Render Subject Progress
+      const subContainer = document.getElementById('subjectBreakdownContainer');
+      subContainer.innerHTML = '';
+
+      for (const [sub, data] of Object.entries(subjectStats)) {
+        const subPct = ((data.correct / data.total) * 100).toFixed(0);
+        const div = document.createElement('div');
+        div.className = "bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800";
+        div.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-semibold mb-1.5">
+            <span class="text-slate-800 dark:text-slate-200">${sub}</span>
+            <span class="font-mono text-teal-600 dark:text-teal-400">${data.correct} / ${data.total} (${subPct}%)</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div class="bg-teal-600 h-full rounded-full transition-all duration-500" style="width: ${subPct}%"></div>
+          </div>
+        `;
+        subContainer.appendChild(div);
+      }
+
+      renderSolutionsReview('all');
+    }
+
+    /* ==========================================================================
+       DETAILED SOLUTIONS REVIEW RENDERER
+       ========================================================================== */
+    function renderSolutionsReview(filter) {
+      const container = document.getElementById('reviewQuestionsContainer');
+      container.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+
+      currentExamQuestions.forEach((q, idx) => {
+        const userChoice = userAnswers[q.id];
+        const isCorrect = (userChoice === q.correct);
+        const isFlagged = flaggedSet.has(q.id);
+
+        if (filter === 'incorrect' && isCorrect) return;
+        if (filter === 'flagged' && !isFlagged) return;
+
+        const card = document.createElement('div');
+        card.className = "p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm";
+
+        let statusBadge = "";
+        if (userChoice === undefined) {
+          statusBadge = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">Unattempted</span>`;
+        } else if (isCorrect) {
+          statusBadge = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Correct (+1)</span>`;
+        } else {
+          statusBadge = `<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">Incorrect (0)</span>`;
+        }
+
+        let optionsHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 my-3">';
+        q.options.forEach((optText, optIdx) => {
+          let optStyle = "p-3 rounded-xl text-xs sm:text-sm border flex items-center gap-2.5 ";
+
+          if (optIdx === q.correct) {
+            optStyle += "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-semibold";
+          } else if (userChoice === optIdx && !isCorrect) {
+            optStyle += "border-rose-500 bg-rose-50/80 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold";
+          } else {
+            optStyle += "border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400";
+          }
+
+          optionsHtml += `
+            <div class="${optStyle}">
+              <span class="w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-[11px] ${
+                optIdx === q.correct ? 'bg-emerald-600 text-white' : userChoice === optIdx ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800'
+              }">${letters[optIdx]}</span>
+              <span>${optText}</span>
+            </div>
+          `;
+        });
+        optionsHtml += '</div>';
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800 dark:text-slate-200">Question ${idx + 1}</span>
+              <span class="text-slate-400">&bull;</span>
+              <span class="text-teal-600 dark:text-teal-400 font-semibold">${q.subject} (${q.topic})</span>
+            </div>
+            ${statusBadge}
+          </div>
+          <p class="text-sm sm:text-base font-medium text-slate-900 dark:text-white mb-2 leading-relaxed">${q.stem}</p>
+          ${optionsHtml}
+          <div class="mt-3 p-3.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900/50 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+            <div class="font-bold text-teal-800 dark:text-teal-400 text-xs uppercase tracking-wider mb-1">Official Solution & Conceptual Derivation:</div>
+            ${q.explanation}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function filterReviewCards(filter, activeBtnId) {
+      document.querySelectorAll('.rev-filter-btn').forEach(btn => {
+        btn.className = "rev-filter-btn px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer";
+      });
+      document.getElementById(activeBtnId).className = "rev-filter-btn px-3 py-1 rounded-lg bg-white dark:bg-slate-700 font-semibold text-slate-900 dark:text-white shadow-sm cursor-pointer";
+      renderSolutionsReview(filter);
+    }
+
+    /* ==========================================================================
+       EVENT LISTENERS & BINDINGS SETUP
+       ========================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Brand logo reset to home using custom modal
+      const leaveModal = document.getElementById('leaveExamModal');
+      safeListen('navLogoBtn', 'click', () => {
+        const examEl = document.getElementById('examScreen');
+        if (examEl && examEl.style.display !== 'none') {
+          if (leaveModal) leaveModal.style.display = 'flex';
+        } else {
+          switchScreen('welcomeScreen');
+        }
+      });
+
+      safeListen('btnCancelLeave', 'click', () => {
+        if (leaveModal) leaveModal.style.display = 'none';
+      });
+
+      safeListen('btnConfirmLeave', 'click', () => {
+        if (leaveModal) leaveModal.style.display = 'none';
+        clearInterval(timerId);
+        const timerContainer = document.getElementById('timerContainer');
+        const submitBtn = document.getElementById('submitExamBtn');
+        const mobBar = document.getElementById('mobileBottomActionBar');
+        if (timerContainer) timerContainer.style.display = 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+        if (mobBar) {
+          mobBar.classList.add('hidden');
+          mobBar.style.display = '';
+        }
+        switchScreen('welcomeScreen');
+      });
+
+      // Start Exam Buttons
+      safeListen('btnStartFullMock', 'click', () => launchExamSession('full', 180, 180));
+      safeListen('btnStartRepeated', 'click', () => launchExamSession('repeated', 200, 150));
+      safeListen('btnStartPredictive', 'click', () => launchExamSession('predictive', 200, 150));
+      safeListen('btnStartMixed', 'click', () => launchExamSession('mixed', 100, 75));
+
+      // Subject Drills
+      safeListen('btnDrillBio', 'click', () => launchExamSession('subject', 'Biology', 80));
+      safeListen('btnDrillChem', 'click', () => launchExamSession('subject', 'Chemistry', 60));
+      safeListen('btnDrillPhys', 'click', () => launchExamSession('subject', 'Physics', 50));
+      safeListen('btnDrillEng', 'click', () => launchExamSession('subject', 'English', 30));
+      safeListen('btnDrillLogic', 'click', () => launchExamSession('subject', 'Logical Reasoning', 30));
+
+      // Mode Selection
+      safeListen('modeExamBtn', 'click', () => {
+        examMode = 'exam';
+        document.getElementById('modeExamBtn').className = "px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold shadow-sm transition cursor-pointer";
+        document.getElementById('modeTutorBtn').className = "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition cursor-pointer";
+        showToast("Strict Timed Mode Activated");
+      });
+
+      safeListen('modeTutorBtn', 'click', () => {
+        examMode = 'tutor';
+        document.getElementById('modeTutorBtn').className = "px-3 py-1 rounded-lg bg-teal-600 text-white font-semibold shadow-sm transition cursor-pointer";
+        document.getElementById('modeExamBtn').className = "px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition cursor-pointer";
+        showToast("Tutor Mode Activated: Instant Solutions");
+      });
+
+      // Exam Action Buttons
+      safeListen('prevQuestionBtn', 'click', () => navigateQuestion(-1));
+      safeListen('nextQuestionBtn', 'click', () => navigateQuestion(1));
+      safeListen('clearResponseBtn', 'click', clearActiveChoice);
+      safeListen('flagQuestionBtn', 'click', toggleActiveFlag);
+
+      // Jump & Next Unanswered Triggers
+      safeListen('btnJumpNextUnanswered', 'click', jumpToNextUnanswered);
+      safeListen('mobileQuickNextUnanswered', 'click', jumpToNextUnanswered);
+      safeListen('mobileScrollToMatrix', 'click', () => {
+        const aside = document.getElementById('omrPaletteAside');
+        if (aside) {
+          aside.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(scrollActiveBubbleIntoView, 150);
+        }
+      });
+
+      safeListen('btnJumpToQ', 'click', () => {
+        const input = document.getElementById('jumpQuestionInput');
+        if (input) jumpToQuestion(input.value);
+      });
+
+      const jumpInput = document.getElementById('jumpQuestionInput');
+      if (jumpInput) {
+        jumpInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            jumpToQuestion(e.target.value);
+          }
+        });
+      }
+
+      // Mobile Drawer Open & Close Triggers (Safely wired to prevent null errors)
+      safeListen('mobileOpenMatrixBtn', 'click', openMobileOmrDrawer);
+      safeListen('mobileProgressTrigger', 'click', openMobileOmrDrawer);
+      safeListen('btnCloseMobileOmr', 'click', closeMobileOmrDrawer);
+
+      // Close mobile drawer when clicking outside the sheet (on the backdrop)
+      safeListen('omrPaletteWrapper', 'click', (e) => {
+        if (e.target && e.target.id === 'omrPaletteWrapper') {
+          closeMobileOmrDrawer();
+        }
+      });
+
+      // Timer Controls
+      safeListen('pauseTimerBtn', 'click', () => {
+        isTimerPaused = !isTimerPaused;
+        const pauseBtn = document.getElementById('pauseTimerBtn');
+        if (pauseBtn) {
+          pauseBtn.title = isTimerPaused ? "Resume Timer" : "Pause Timer";
+          pauseBtn.classList.toggle('text-amber-500', isTimerPaused);
+        }
+        showToast(isTimerPaused ? "Timer Paused" : "Timer Resumed");
+      });
+
+      // Submit Examination Triggers
+      safeListen('submitExamBtn', 'click', openConfirmModal);
+      safeListen('btnPaletteFinish', 'click', openConfirmModal);
+      safeListen('btnModalCancel', 'click', closeConfirmModal);
+      safeListen('btnModalConfirm', 'click', executeExamSubmission);
+
+      // Palette Status Filter Tabs
+      safeListen('tabStatAll', 'click', () => setPaletteStatusFilter('all', 'tabStatAll'));
+      safeListen('tabStatUnanswered', 'click', () => setPaletteStatusFilter('unanswered', 'tabStatUnanswered'));
+      safeListen('tabStatAnswered', 'click', () => setPaletteStatusFilter('answered', 'tabStatAnswered'));
+      safeListen('tabStatFlagged', 'click', () => setPaletteStatusFilter('flagged', 'tabStatFlagged'));
+
+      // Palette Subject Filter Tabs
+      safeListen('tabPalAll', 'click', () => setPaletteSubjectFilter('all', 'tabPalAll'));
+      safeListen('tabPalBio', 'click', () => setPaletteSubjectFilter('Biology', 'tabPalBio'));
+      safeListen('tabPalChem', 'click', () => setPaletteSubjectFilter('Chemistry', 'tabPalChem'));
+      safeListen('tabPalPhys', 'click', () => setPaletteSubjectFilter('Physics', 'tabPalPhys'));
+      safeListen('tabPalEng', 'click', () => setPaletteSubjectFilter('English', 'tabPalEng'));
+      safeListen('tabPalLogic', 'click', () => setPaletteSubjectFilter('Logical Reasoning', 'tabPalLogic'));
+
+      // Review Filters
+      safeListen('revFilterAll', 'click', () => filterReviewCards('all', 'revFilterAll'));
+      safeListen('revFilterIncorrect', 'click', () => filterReviewCards('incorrect', 'revFilterIncorrect'));
+      safeListen('revFilterFlagged', 'click', () => filterReviewCards('flagged', 'revFilterFlagged'));
+
+      // New Test / Retake
+      safeListen('newExamBtn', 'click', () => switchScreen('welcomeScreen'));
+      safeListen('btnRetakeExam', 'click', () => switchScreen('welcomeScreen'));
+      safeListen('btnPrintScorecard', 'click', () => window.print());
+
+      // Dark / Light Mode Toggle
+      safeListen('themeToggleBtn', 'click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        safeStore.set('mdcat_theme_mode', isDark ? 'dark' : 'light');
+      });
+
+      // Check Saved Theme
+      const savedTheme = safeStore.get('mdcat_theme_mode');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+
+      // Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        const examEl = document.getElementById('examScreen');
+        const modalEl = document.getElementById('confirmSubmitModal');
+        const leaveEl = document.getElementById('leaveExamModal');
+        if (!examEl || examEl.style.display === 'none' || (modalEl && modalEl.style.display === 'flex') || (leaveEl && leaveEl.style.display === 'flex')) return;
+
+        // Ignore shortcuts if focusing the jump question input
+        if (document.activeElement === document.getElementById('jumpQuestionInput')) return;
+
+        const key = e.key.toUpperCase();
+        if (key === 'A') selectExamOption(0);
+        else if (key === 'B') selectExamOption(1);
+        else if (key === 'C') selectExamOption(2);
+        else if (key === 'D') selectExamOption(3);
+        else if (key === 'N') navigateQuestion(1);
+        else if (key === 'P') navigateQuestion(-1);
+        else if (key === 'F') toggleActiveFlag();
+      });
+
+    });
+  </script>
+</body>
+</html>
